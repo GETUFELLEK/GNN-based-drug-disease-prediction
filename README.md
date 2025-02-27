@@ -89,15 +89,11 @@ python train_model.py
 python evaluate_model.py
 ```
 
-### **5️⃣ Visualize the Knowledge Graph**
+### **5️⃣ Visualize the Knowledge Graph (optional)**
 ```bash
 python build_graph.py
 ```
 
-### **Example Graph Visualization:**
-![Graph Example](graph_visualization.png)
-
----
 
 ## **Model Architecture**
 We implement a **Graph Convolutional Network (GCN)** with the following layers:
