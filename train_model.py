@@ -1,39 +1,32 @@
+from torch.optim import Adam
 
-import torch
-import torch.optim as optim
-from gnn_model import GCN
-from build_graph import convert_to_torch_geometric
-from torch.nn import BCEWithLogitsLoss
+# Generate labels (1 for connected, 0 for no interaction)
+labels = torch.tensor([1, 1, 1, 1], dtype=torch.long)  # All defined edges exist
 
-# Training function
-def train_model(data, num_epochs=200):
-    model = GCN(in_channels=64, hidden_channels=128, out_channels=64)
-    optimizer = optim.Adam(model.parameters(), lr=0.01)
-    loss_fn = BCEWithLogitsLoss()
+# Train-Test Split (simple 75%-25% split)
+train_ratio = 0.75
+train_size = int(len(edges) * train_ratio)
+train_idx, test_idx = torch.arange(train_size), torch.arange(train_size, len(edges))
 
-    # Training loop
-    for epoch in range(num_epochs):
-        model.train()
-        optimizer.zero_grad()
-        logits = model(data)
-        loss = loss_fn(logits.squeeze(), data.y.float())  # Example loss function
-        loss.backward()
-        optimizer.step()
+# Define optimizer and loss function
+optimizer = Adam(model.parameters(), lr=0.01)
+loss_fn = torch.nn.CrossEntropyLoss()
 
-        if (epoch + 1) % 10 == 0:
-            print(f'Epoch {epoch + 1}, Loss: {loss.item():.4f}')
-    return model
+# Training loop
+epochs = 50
+for epoch in range(epochs):
+    model.train()
+    optimizer.zero_grad()
+    output = model(graph_data.x, graph_data.edge_index)
 
-# Example usage
-if __name__ == "__main__":
-    from build_graph import build_graph
-    from load_dataset import load_drug_disease_data
+    # Select only edge embeddings
+    edge_embeddings = output[edge_index[0]]
 
-    # Load dataset and build graph
-    data_df = load_drug_disease_data()
-    G = build_graph(data_df)
-    data = convert_to_torch_geometric(G)
+    loss = loss_fn(edge_embeddings, labels)
+    loss.backward()
+    optimizer.step()
 
-    # Train the model
-    trained_model = train_model(data)
-t
+    if epoch % 10 == 0:
+        print(f"Epoch {epoch}, Loss: {loss.item()}")
+
+print("Training complete!")

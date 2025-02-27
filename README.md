@@ -1,46 +1,63 @@
- This document outlines the project’s purpose, installation steps, usage, and further details that will help anyone who wants to understand or run the project.
-
--# Drug-Disease Interaction Prediction using Graph Neural Networks (GNN)
+# Drug-Disease Interaction Prediction using Graph Neural Networks (GNN)
 
 ## Overview
 
-This project demonstrates how to use Graph Neural Networks (GNNs) to predict drug-disease interactions. The goal is to leverage publicly available datasets such as DrugBank and build a graph-based AI model to predict relationships between drugs and diseases, such as which drug treats or causes a disease. We use **PyTorch Geometric** to implement the GNN and handle the graph structure, while **NetworkX** helps to visualize the knowledge graph.
+This project demonstrates how to use **Graph Neural Networks (GNNs)** to predict drug-disease interactions on **Apple Silicon (M1/M2/M3) Macs** using **PyTorch Geometric (PyG)**. The goal is to leverage publicly available datasets such as **DrugBank** and build a **graph-based AI model** to predict relationships between drugs and diseases, such as which drug treats or causes a disease. 
 
-## Project Structure
+We utilize **PyTorch Geometric** for graph-based deep learning, **NetworkX** for graph visualization, and **Apple's Metal (MPS) backend** for hardware acceleration.
 
-```
-|-- medical_ai_project
-    |-- load_dataset.py         # Code to load and preprocess the dataset
-    |-- build_graph.py          # Code to build the drug-disease graph
-    |-- gnn_model.py            # Definition of the GCN model
-    |-- train_model.py          # Training logic for the GNN
-    |-- evaluate_model.py       # Code for evaluating the GNN model
-    |-- README.md               # This file (project documentation)
-    |-- requirements.txt        # List of dependencies for easy installation
-```
+---
 
-## Dependencies
+## **Installation Instructions (Apple Silicon M1/M2/M3)**
 
-This project uses the following Python packages:
+Since CUDA is **not available** on Apple Silicon, we install PyTorch with **MPS support** and PyTorch Geometric (PyG) using CPU-compatible wheels.
 
-- `torch` (PyTorch for deep learning)
-- `torch_geometric` (for graph-based neural networks)
-- `networkx` (for graph manipulation)
-- `pandas` (for data manipulation)
-- `scikit-learn` (for model evaluation)
-- `matplotlib` (for graph visualization)
-
-To install these dependencies, run:
-
+### **1️⃣ Install PyTorch (CPU/MPS Version)**
 ```bash
-pip install -r requirements.txt
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 ```
 
-## Dataset
+### **2️⃣ Install Required Build Tools** *(Optional for Compilation)*
+```bash
+xcode-select --install  # Ensures Apple Clang compiler is installed
+```
 
-To get started, download a dataset that contains drug-disease interactions. One such dataset can be obtained from **DrugBank**. You will need a CSV file with at least two columns: one for drug IDs and one for disease IDs. The file path should be updated in `load_dataset.py`.
+If using **Conda (Miniforge)**:
+```bash
+conda install -c conda-forge clang_osx-arm64 clangxx_osx-arm64 gfortran_osx-arm64
+```
+Set macOS deployment target:
+```bash
+export MACOSX_DEPLOYMENT_TARGET=12.3
+export CC=clang CXX=clang++
+```
 
-### Example CSV Structure:
+### **3️⃣ Install PyTorch Geometric (Core Library)**
+```bash
+pip install torch-geometric
+```
+
+### **4️⃣ Install PyG Dependencies (Graph Operations)**
+```bash
+pip install pyg_lib torch-scatter torch-sparse torch-cluster torch-spline-conv \
+    -f https://data.pyg.org/whl/torch-2.5.0+cpu.html
+```
+
+### **5️⃣ Verify Installation**
+```python
+import torch
+import torch_geometric
+print("Torch Version:", torch.__version__)
+print("Torch Geometric Version:", torch_geometric.__version__)
+print("Is CUDA available?", torch.cuda.is_available())  # Expected: False
+```
+
+---
+
+## **Dataset**
+Download a dataset that contains **drug-disease interactions**. Example source: **DrugBank**. The dataset should be a CSV file containing **drug IDs and disease IDs**.
+
+### **Example CSV Structure:**
 ```csv
 drug_id,disease_id,relationship
 DB001,DS001,treats
@@ -48,86 +65,69 @@ DB002,DS002,causes
 ...
 ```
 
-## Steps to Run the Project
+---
 
-### 1. Load the Dataset
+## **Steps to Run the Project**
 
-The first step is to load the dataset and preprocess it. The dataset is loaded using the `load_dataset.py` script.
-
+### **1️⃣ Load the Dataset**
 ```bash
 python load_dataset.py
 ```
 
-### 2. Build the Knowledge Graph
-
-Using the preprocessed data, a graph is built in **NetworkX** and then converted to **PyTorch Geometric** format. Run the `build_graph.py` script to construct the graph.
-
+### **2️⃣ Build the Knowledge Graph**
 ```bash
 python build_graph.py
 ```
 
-### 3. Define and Train the GNN Model
-
-The GNN model is defined in `gnn_model.py`. We use a **Graph Convolutional Network (GCN)** to predict the interaction between drugs and diseases. You can train the model using `train_model.py`:
-
+### **3️⃣ Train the GNN Model**
 ```bash
 python train_model.py
 ```
 
-### 4. Evaluate the Model
-
-After training, evaluate the model's performance using metrics such as accuracy, precision, recall, and ROC-AUC. You can run the evaluation script:
-
+### **4️⃣ Evaluate the Model**
 ```bash
 python evaluate_model.py
 ```
 
-### 5. Visualize the Knowledge Graph
-
-The drug-disease interaction graph can be visualized using **NetworkX** and **Matplotlib**. The function in `build_graph.py` can be used to generate a graphical representation of the knowledge graph.
-
+### **5️⃣ Visualize the Knowledge Graph**
 ```bash
 python build_graph.py
 ```
 
-### Example Graph Visualization:
-
+### **Example Graph Visualization:**
 ![Graph Example](graph_visualization.png)
-
-## Model Architecture
-
-We use a simple **Graph Convolutional Network (GCN)** with two layers:
-
-- **Input Layer**: Accepts node features (64-dimensional random features).
-- **Hidden Layer**: A graph convolution layer with ReLU activation.
-- **Output Layer**: A fully connected layer for binary classification (predicting interactions).
-
-The model is trained using **Binary Cross-Entropy Loss (BCE Loss)** and **Adam Optimizer**.
-
-## Results
-
-The performance of the model is evaluated using:
-
-- **Accuracy**: Measures the percentage of correct predictions.
-- **Precision**: Measures the ability of the model to predict positive samples correctly.
-- **Recall**: Measures the ability of the model to find all relevant positive samples.
-- **ROC-AUC**: Measures the trade-off between true positives and false positives.
-
-## Future Work
-
-- **Advanced GNNs**: We can experiment with **Graph Attention Networks (GAT)** or **GraphSAGE** for better performance.
-- **Improved Features**: Include more node and edge features such as drug properties, disease severity, and more.
-- **Expanded Dataset**: Use larger datasets to improve model generalization.
-
-## References
-
-- [PyTorch Geometric Documentation](https://pytorch-geometric.readthedocs.io/)
-- [DrugBank Database](https://www.drugbank.ca/)
-
-## License
-
-This project is open-source and available under the MIT License.
 
 ---
 
-# GNN-based-drug-disease-prediction
+## **Model Architecture**
+We implement a **Graph Convolutional Network (GCN)** with the following layers:
+- **Input Layer:** Accepts node features (e.g., drug properties, disease embeddings)
+- **Hidden Layer:** A graph convolution layer with ReLU activation
+- **Output Layer:** A fully connected layer for binary classification
+
+The model is trained using **Binary Cross-Entropy Loss (BCE Loss)** and **Adam Optimizer**.
+
+---
+
+## **Results**
+- **Accuracy**: Measures correct predictions.
+- **Precision & Recall**: Measures classification performance.
+- **ROC-AUC**: Evaluates model effectiveness in distinguishing interactions.
+
+---
+
+## **Future Work**
+✅ **Use Advanced GNN Architectures** (GAT, GraphSAGE, HGT)
+✅ **Incorporate Molecular Features**
+✅ **Expand to Larger Datasets (Hetionet, DisGeNET)**
+
+---
+
+## **References**
+- [PyTorch Geometric Documentation](https://pytorch-geometric.readthedocs.io/)
+- [DrugBank Database](https://www.drugbank.ca/)
+
+---
+
+## **License**
+This project is open-source under the **MIT License**.

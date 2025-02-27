@@ -1,21 +1,23 @@
-
-import torch
 from torch_geometric.nn import GCNConv
 
-class GCN(torch.nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels):
-        super(GCN, self).__init__()
-        self.conv1 = GCNConv(in_channels, hidden_channels)
-        self.conv2 = GCNConv(hidden_channels, out_channels)
 
-    def forward(self, data):
-        x, edge_index = data.x, data.edge_index
-        x = self.conv1(x, edge_index).relu()
-        x = self.conv2(x, edge_index).relu()
+class GCN(torch.nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        super(GCN, self).__init__()
+        self.conv1 = GCNConv(input_dim, hidden_dim)
+        self.conv2 = GCNConv(hidden_dim, output_dim)
+
+    def forward(self, x, edge_index):
+        x = self.conv1(x, edge_index)
+        x = F.relu(x)
+        x = self.conv2(x, edge_index)
         return x
 
-# Example usage (with random data)
-if __name__ == "__main__":
-    model = GCN(in_channels=64, hidden_channels=128, out_channels=64)
-    print(model)
-tr
+
+# Instantiate the model
+input_dim = 16  # Feature vector size
+hidden_dim = 32
+output_dim = 2  # Binary classification (Interaction: Yes/No)
+model = GCN(input_dim, hidden_dim, output_dim)
+
+print(model)
